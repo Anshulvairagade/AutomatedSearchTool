@@ -86,7 +86,10 @@ if st.session_state.processed:
         with st.expander(f"Article: {url}"):
             st.write(content)
 
-# Load the saved FAISS index if it exists
+if 'qa_history' not in st.session_state:
+    st.session_state.qa_history = []
+
+
 if os.path.exists("faiss_store.pkl"):
     with open("faiss_store.pkl", "rb") as f:
         vectorstore = pickle.load(f)
@@ -96,14 +99,15 @@ if os.path.exists("faiss_store.pkl"):
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
-        retriever=vectorstore.as_retriever(search_kwargs={"k": 3}),  # Retrieve more documents for context
+        retriever=vectorstore.as_retriever(search_kwargs={"k": 3}),
     )
-    
-    # User query input
+   
+    # Use the session state input key for the text input
     query = st.text_input("Ask a question about the scheme:")
-    if query:
+    get_answer_button = st.button("Get Answer")
+    
+    if get_answer_button and query:
         with st.spinner("Generating detailed answer..."):
-            # Formulate a more descriptive prompt
             detailed_query = f"""Provide a detailed and comprehensive answer to the following question about the scheme. 
             Include relevant facts, explanations, and examples if applicable. 
             If there are multiple aspects to the answer, break it down into clear points.
@@ -114,25 +118,17 @@ if os.path.exists("faiss_store.pkl"):
             
             result = qa_chain({"query": detailed_query})
         
-        # Display answer
-        st.header("Detailed Answer")
-        st.write(result["result"])
+        st.session_state.qa_history.append({"question": query, "answer": result["result"]})
         
-        # Generate and display summary
-        with st.spinner("Generating comprehensive summary..."):
-            summary_prompt = f"""Based on the articles, provide a detailed summary covering the following key criteria:
-            1. Scheme Benefits: Explain the main advantages and positive outcomes for participants.
-            2. Scheme Application Process: Describe the step-by-step procedure for applying, including any deadlines or special requirements.
-            3. Eligibility: Clearly outline who can apply, including any age, income, or other restrictions.
-            4. Documents Required: List and explain all necessary documentation for the application.
-
-            Please provide a comprehensive explanation for each point, using information from all relevant articles.
-
-            Detailed summary:"""
-            
-            summary = qa_chain({"query": summary_prompt})
+        # Increment the input key to force a re-render of the text input
         
-        st.header("Comprehensive Summary")
-        st.write(summary["result"])
+        # Force a rerun to update the UI
+    
+    # Display the question-answer history        
+    for i, qa_pair in enumerate(st.session_state.qa_history, 1):
+        st.write(f"Q{i}: {qa_pair['question']}")
+        st.write(f"A{i}: {qa_pair['answer']}")
+        st.write("---")  # Add a separator between Q&A pairs
+
 else:
     st.info("Please process URLs to start asking questions.")
