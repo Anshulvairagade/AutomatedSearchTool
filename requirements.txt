@@ -1,0 +1,7 @@
+streamlit
+langchain
+openai
+faiss-cpu
+unstructured
+tiktoken
+langchain-community
