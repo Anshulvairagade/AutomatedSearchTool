@@ -102,7 +102,7 @@ if os.path.exists("faiss_store.pkl"):
         retriever=vectorstore.as_retriever(search_kwargs={"k": 3}),
     )
    
-    # Use the session state input key for the text input
+    # Using the session state input key for the text input
     query = st.text_input("Ask a question about the scheme:")
     get_answer_button = st.button("Get Answer")
     
