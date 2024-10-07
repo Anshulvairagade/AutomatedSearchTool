@@ -74,7 +74,10 @@ if process_button:
         with open("faiss_store.pkl", "wb") as f:
             pickle.dump(vectorstore, f)
         
+
         st.session_state.processed = True
+
+        # shows success message of Url processed and indexed successfully
         st.success("URLs processed and indexed successfully!")
     else:
         st.warning("Please enter at least one URL.")
@@ -120,9 +123,7 @@ if os.path.exists("faiss_store.pkl"):
         
         st.session_state.qa_history.append({"question": query, "answer": result["result"]})
         
-        # Increment the input key to force a re-render of the text input
         
-        # Force a rerun to update the UI
     
     # Display the question-answer history        
     for i, qa_pair in enumerate(st.session_state.qa_history, 1):
